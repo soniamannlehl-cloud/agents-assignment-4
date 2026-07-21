@@ -1,17 +1,11 @@
 # Assignment 4: Reflection
 
-<<<<<<< HEAD
 ## Student Name: Sonia Mann
 =======
-## Student Name: _______________
->>>>>>> upstream/main
-
----
 
 ## Part 1: MCP Tools + Customer Data Agent
 
 ### Tool Design Decisions
-<<<<<<< HEAD
 The MCP tools were already provided through the MCP server (mcp_server/app.py), so my role was not to create new tools but to configure how each agent could access them. The MCP server exposes 15 database tools through SSE, covering customer management, ticket management, and statistics/search operations.
 
 For the Customer Data Agent, I configured the MCP toolset with full access to all 15 tools by not applying a tool_filter. The reason for this design choice was that the Customer Data Agent’s role is to act as a data lookup and management agent. It needs broad access to retrieve customer records, view tickets, create tickets, update ticket information, and access statistics.
@@ -46,160 +40,103 @@ For example:
 “How many tickets are open?” → get_ticket_stats
 
 The instruction also emphasized that the agent should never fabricate information. If a tool fails or required information is missing, it should clearly communicate the issue rather than guessing.
-=======
-- Which MCP tools did you implement and why?
-- How did you design the tool signatures for ADK compatibility?
 
-### Data Agent Instruction
-- What capabilities did you include in the system instruction?
-- How does the instruction guide the agent's tool selection?
->>>>>>> upstream/main
-
----
-
-## Part 2: Multi-Agent A2A System
+### Part 2: Multi-Agent A2A System
 
 ### Support Agent Design
-<<<<<<< HEAD
-Support Agent Design
-What knowledge did you embed in the support agent's instruction?
+The Support Agent required a different design philosophy. Unlike the Customer Data Agent, its purpose was not simply retrieving information. Its job was to combine customer context with troubleshooting knowledge and provide helpful guidance.
 
-For the Support Agent, I embedded a structured knowledge base that allows the agent to handle common customer support scenarios while still having access to MCP tools when additional information is needed.
+I created a knowledge base covering common support scenarios:
 
-The instruction covered several common support categories:
+Login issues
+Billing problems
+Performance issues
+Feature requests
+Data export problems
 
-Login issues: password resets, account lockouts, browser/cache troubleshooting, and account verification steps.
-Billing problems: failed payments, duplicate charges, invoice issues, and when to escalate billing concerns.
-Performance issues: troubleshooting slow loading, timeouts, browser issues, and identifying when a larger platform issue may exist.
-Feature requests: acknowledging customer feedback, searching for duplicate requests, and creating feature request tickets.
-Data export issues: guiding users through self-service export steps and creating tickets if exports fail.
+However, I did not make the agent completely dependent on static instructions. The Support Agent still uses MCP tools through create_support_toolset() when it needs customer-specific information.
 
-In addition to the troubleshooting knowledge, I included guidance on the agent’s workflow, response structure, and communication style. The agent was instructed to first understand the customer’s issue, identify the category, provide troubleshooting steps, and take ticket actions when necessary.
+For example:
 
-I also defined the expected tone of the agent: empathetic, professional, and solution-oriented. The goal was for the agent to not only solve problems but also provide a better customer experience by acknowledging the user’s frustration and clearly explaining next steps.
+A general question like “How do I reset my password?” can be answered from the knowledge base.
+A question like “Why is John’s account locked?” requires retrieving customer data first.
 
-How does it handle queries without external tools?
+The response structure was designed to provide consistency:
 
-One thing I learned during this implementation is that not every customer request requires a database lookup or MCP tool call.
+Customer context
+Issue category
+Troubleshooting steps
+Ticket actions taken
 
-For general troubleshooting questions, the Support Agent can respond using the embedded knowledge base alone. For example:
-
-“How do I reset my password?”
-“Why is the application running slowly?”
-“How do I export my data?”
-
-These questions do not require customer-specific information, so the agent can provide immediate guidance without calling external tools.
-
-However, when a request requires personalized information, the agent uses its MCP tools. For example:
-
-Checking a specific customer account → get_customer
-Reviewing ticket history → list_tickets or search_tickets
-Creating or updating support tickets → ticket management tools
-
-The design is a hybrid approach: the knowledge base handles common support scenarios quickly, while MCP tools provide the data needed for account-specific troubleshooting.
-
-A key design decision was that the Support Agent does not rely entirely on another agent to provide information. It has its own filtered MCP toolset, which allows it to operate independently while still participating in the A2A workflow through the Host Agent. This creates a more flexible architecture where the agent can support both standalone use and multi-agent collaboration.
+This helped balance conversational support with data-driven responses.
 
 ### Host Agent Orchestration
-The Host Agent is implemented as a SequentialAgent that coordinates two remote agents through the A2A protocol:
+The Host Agent was where I started seeing the bigger picture of agentic architecture.
 
-Customer Data Agent (port 10020)
-Support Agent (port 10021)
+Instead of directly importing Python modules and calling functions, I implemented communication using A2A. The Host Agent uses a `SequentialAgent` with two `RemoteA2aAgent` sub-agents:
 
-The workflow follows a simple sequence:
+- Customer Data Agent running on port 10020
+- Support Specialist Agent running on port 10021
 
-User Query → Customer Data Agent → Support Agent → Final Response
+The workflow follows:
 
-When a request comes into the Host Agent, the Customer Data Agent runs first. It uses its MCP toolset to retrieve relevant customer or ticket information. Once it completes, the Support Agent runs next and receives the previous agent’s output as part of the shared conversation context.
+Customer Data Lookup → Support Reasoning → Final Response
 
-One of the key things I learned from this architecture is that the Host Agent is not directly calling Python functions from the other agents. Instead, it communicates through RemoteA2aAgent, which treats each agent as an independent service. The Host Agent only needs to know the agent’s URL and AgentCard information; it does not need to know how the agent is implemented internally.
+The Customer Data Agent runs first and retrieves relevant customer or ticket information using MCP tools. The Support Agent then receives that information through the shared conversation context and uses it along with its troubleshooting knowledge to generate a more personalized response.
 
-This creates a more scalable architecture because each agent can be developed, updated, and deployed independently.
+One of the biggest insights from this design was understanding that agents can have specialized responsibilities instead of creating one large agent that handles everything. The Customer Data Agent acts as the information retrieval layer, while the Support Agent focuses on customer interaction and problem solving.
 
-When the Customer Data Agent completes its task, the results become part of the shared session context that is passed to the Support Agent in the next step.
+The Host Agent’s role is only orchestration. It coordinates the workflow but does not contain the business logic of either specialist agent.
 
-For example, if a user asks:
-
-"I am having login issues. Can you check my account and help?"
-
-The workflow is:
-
-The Customer Data Agent retrieves relevant information:
-Customer account details
-Account status
-Existing tickets
-Ticket history
-That information is added to the conversation context.
-The Support Agent receives both:
-The original customer request
-The Customer Data Agent’s findings
-The Support Agent combines that information with its troubleshooting knowledge to provide a personalized response.
-
-The benefit of this design is that each agent has a clear responsibility:
-
-The Customer Data Agent is the fact finder.
-The Support Agent is the problem solver.
-
-The Support Agent does not have to guess customer details because the data has already been gathered. It can focus on providing troubleshooting steps, explaining the issue, and taking support actions when needed.
 
 ### A2A Protocol Insights
-## A2A Protocol Insights
+Agent discovery in A2A is handled through AgentCards. I think of an AgentCard as a profile or business card for an agent. It describes what the agent does, where it is located, and how another system can communicate with it.
 
-### How does agent discovery work via AgentCards?
+In this project, each agent has an AgentCard that defines important information such as:
 
-In this project, AgentCards act like a “business card” for each agent. Instead of the Host Agent needing to know how every agent is implemented internally, each agent publishes information about itself, including its name, URL, description, capabilities, skills, and example queries.
+- Agent name and description
+- Agent URL
+- Available capabilities
+- Supported transport protocol
+- Skills and example queries
 
-I created AgentCards for the three agents: the Customer Data Agent, the Support Agent, and the Host Agent. Each card describes the role of the agent and the capabilities it provides. When the Host Agent needs to communicate with another agent, it can use the AgentCard to understand what that agent does and how to communicate with it.
+The Host Agent uses this information to understand what each remote agent can do before sending requests. This allows agents to be discovered dynamically instead of requiring hard-coded imports or direct knowledge of another agent’s code.
 
-The key insight I gained from this is that AgentCards make agents discoverable services. The Host Agent does not need hard-coded knowledge of another agent’s Python implementation. Instead, it relies on the published metadata to understand the agent’s capabilities.
+The main learning for me was that A2A creates a more service-oriented architecture. Agents advertise their capabilities, and other agents can discover and use them without needing to know how they were built internally.
 
-### What role does the `.well-known/agent-card.json` endpoint play?
+The `.well-known/agent-card.json` endpoint is the standard location where an agent publishes its AgentCard information.
 
-The `.well-known/agent-card.json` endpoint is the standard A2A discovery location where each agent exposes its AgentCard information.
-
-For example, an agent running on port 10020 exposes its card at:
+For example, the Customer Data Agent exposes its AgentCard through:
 
 `http://localhost:10020/.well-known/agent-card.json`
 
-When the Host Agent creates a `RemoteA2aAgent`, it uses this endpoint to retrieve information about the remote agent before sending requests. The AgentCard provides details about the agent’s capabilities, supported communication methods, and endpoint information.
+When the Host Agent creates a `RemoteA2aAgent`, it uses this endpoint to retrieve the remote agent’s metadata. The AgentCard provides the information needed to communicate with the agent, including its capabilities, skills, and communication details.
 
-The discovery process allows the Host Agent to dynamically understand how to communicate with another agent instead of requiring custom configuration or direct knowledge of the agent’s internal code.
+The benefit of using a standard endpoint is that any A2A-compatible client knows where to look for an agent’s information. This improves interoperability because agents can be added, replaced, or updated without changing the entire system architecture.
 
-Using a standard discovery endpoint also improves interoperability because different agents can follow the same pattern for publishing their capabilities.
+The biggest difference is that `RemoteA2aAgent` communicates with another agent as an independent service, while direct function calls require both components to exist inside the same application.
 
-### How does `RemoteA2aAgent` differ from direct function calls?
+With direct function calls, the Host Agent would need to import another agent’s Python module and know exactly how to call its functions. This creates tight coupling between components.
 
-The biggest difference between `RemoteA2aAgent` and direct function calls is the level of independence between agents.
+With `RemoteA2aAgent`, the Host Agent only needs the remote agent’s URL and AgentCard information. Communication happens through the A2A protocol using network messages rather than direct Python execution.
 
-With direct function calls, the Host Agent would need to import another agent’s Python code and call functions directly. This creates a tightly coupled system where changes to one agent may require changes to another.
+The trade-offs are:
 
-With `RemoteA2aAgent`, each agent runs as an independent service and communicates through the A2A protocol. The Host Agent only needs the remote agent’s URL and AgentCard information. It does not need to know how the agent is implemented internally.
+A2A provides:
+- Independent deployment
+- Process isolation
+- Agent discovery through AgentCards
+- Ability to scale agents separately
 
-This architecture provides several advantages: agents can run on separate ports, be deployed independently, and be updated or scaled without modifying the Host Agent. The tradeoff is that A2A introduces additional complexity, including network communication, AgentCards, and service configuration.
+Direct function calls provide:
+- Lower latency
+- Less configuration
+- Simpler implementation
 
-For this assignment, the A2A approach was appropriate because the goal was to build a true multi-agent system where specialized agents collaborate as independent services rather than creating one large monolithic agent.
+For this assignment, using A2A was the better design because the goal was not just to make agents work together, but to build a true multi-agent system where each agent can operate as an independent, discoverable service.
 
-One of my biggest takeaways from this assignment was understanding that A2A changes the way we think about agent design. Instead of building one agent that handles every responsibility, we can create specialized agents that communicate through a standard protocol and work together to solve more complex problems.
-=======
-- What knowledge did you embed in the support agent's instruction?
-- How does it handle queries without external tools?
-
-### Host Agent Orchestration
-- How does the SequentialAgent coordinate between sub-agents?
-- What happens when the Customer Data Agent returns data to the Support Agent?
-
-### A2A Protocol Insights
-- How does agent discovery work via AgentCards?
-- What role does the `.well-known/agent-card.json` endpoint play?
-- How does RemoteA2aAgent differ from direct function calls?
-
----
->>>>>>> upstream/main
 
 ## Part 3: Challenges and Solutions
-
-### Technical Challenges
-<<<<<<< HEAD
 
 The most difficult part of the implementation was not writing the individual agents, but making sure all of the pieces worked together correctly across MCP, ADK, and A2A. Since this assignment involved multiple layers of communication, a small configuration issue in one area could affect the entire system.
 
@@ -240,22 +177,12 @@ However, direct calls create tighter coupling because the Host Agent would need 
 The A2A approach adds overhead through separate services, network communication, and agent discovery, but it provides important benefits. Each agent can run independently, advertise its capabilities through AgentCards, and be replaced or updated without changing the entire system.
 
 For this assignment, the SequentialAgent pattern was the right choice because customer support has a natural workflow order. The data retrieval step improves the quality of the support response, while A2A provides a foundation for building more scalable multi-agent systems.
-=======
-- What was the most difficult part of the implementation?
-- How did you debug agent communication issues?
-
-### Architecture Decisions
-- Why is the SequentialAgent pattern appropriate for this use case?
-- What are the trade-offs vs. direct agent calls?
->>>>>>> upstream/main
-
----
+--
 
 ## Bonus: Routing Modes (if attempted)
 
 ### Advanced Router
 - How does the dynamic routing decide which agents to call?
-<<<<<<< HEAD
 
 The Advanced Router was designed to make the system more efficient by deciding whether a user request actually requires the Customer Data Agent, the Support Agent, or both.
 
@@ -311,7 +238,6 @@ This reduces the overall response time for queries that require both customer da
 
 The trade-off is that parallel execution changes how information is shared. Unlike the sequential workflow, the Support Agent does not automatically receive the Customer Data Agent’s output before it responds because both agents start with the same initial user request.
 
----
 
 ### What synthesis strategy did you use to combine results?
 
@@ -342,8 +268,6 @@ The main benefit is improved performance, while the additional synthesis step en
 
 4. Debugging this project also improved my understanding of how complex AI systems are built. Testing each layer independently helped me understand where failures occurred and reinforced the importance of validating tools, agents, and communication protocols separately before integrating everything together.
 
----
-
 ## Ideas for Improvement
 
 One improvement would be replacing the keyword-based routing logic in the Advanced Router with an LLM-based intent classifier. The current approach works for clear queries, but an LLM classifier would handle ambiguous requests more accurately and understand user intent beyond specific keywords.
@@ -355,29 +279,3 @@ The parallel router could also be improved by adding structured output schemas i
 A future enhancement would be adding monitoring and observability across the agents. Tracking agent decisions, tool usage, response time, and failures would make it easier to manage a production multi-agent system.
 
 Overall, this assignment helped me see that the future of AI applications will likely involve multiple specialized agents working together rather than one general-purpose agent handling every responsibility. The next step would be building more production-ready systems with better routing, monitoring, and structured communication between agents.        
-=======
-- What callback patterns did you use?
-
-### Parallel Router
-- How does parallel execution improve latency?
-- What synthesis strategy did you use to combine results?
-
-### Mode Comparison
-
-| Mode | Agents Called | Latency | Context Passing |
-|------|-------------|---------|-----------------|
-| Basic (Sequential) | | | |
-| Advanced (Dynamic) | | | |
-| Parallel | | | |
-
----
-
-## Key Learnings
-1.
-2.
-3.
-
-## Ideas for Improvement
--
--
->>>>>>> upstream/main
