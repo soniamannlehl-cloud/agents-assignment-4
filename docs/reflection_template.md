@@ -1,12 +1,17 @@
 # Assignment 4: Reflection
 
+<<<<<<< HEAD
 ## Student Name: Sonia Mann
+=======
+## Student Name: _______________
+>>>>>>> upstream/main
 
 ---
 
 ## Part 1: MCP Tools + Customer Data Agent
 
 ### Tool Design Decisions
+<<<<<<< HEAD
 The MCP tools were already provided through the MCP server (mcp_server/app.py), so my role was not to create new tools but to configure how each agent could access them. The MCP server exposes 15 database tools through SSE, covering customer management, ticket management, and statistics/search operations.
 
 For the Customer Data Agent, I configured the MCP toolset with full access to all 15 tools by not applying a tool_filter. The reason for this design choice was that the Customer Data Agent’s role is to act as a data lookup and management agent. It needs broad access to retrieve customer records, view tickets, create tickets, update ticket information, and access statistics.
@@ -41,12 +46,21 @@ For example:
 “How many tickets are open?” → get_ticket_stats
 
 The instruction also emphasized that the agent should never fabricate information. If a tool fails or required information is missing, it should clearly communicate the issue rather than guessing.
+=======
+- Which MCP tools did you implement and why?
+- How did you design the tool signatures for ADK compatibility?
+
+### Data Agent Instruction
+- What capabilities did you include in the system instruction?
+- How does the instruction guide the agent's tool selection?
+>>>>>>> upstream/main
 
 ---
 
 ## Part 2: Multi-Agent A2A System
 
 ### Support Agent Design
+<<<<<<< HEAD
 Support Agent Design
 What knowledge did you embed in the support agent's instruction?
 
@@ -166,10 +180,26 @@ This architecture provides several advantages: agents can run on separate ports,
 For this assignment, the A2A approach was appropriate because the goal was to build a true multi-agent system where specialized agents collaborate as independent services rather than creating one large monolithic agent.
 
 One of my biggest takeaways from this assignment was understanding that A2A changes the way we think about agent design. Instead of building one agent that handles every responsibility, we can create specialized agents that communicate through a standard protocol and work together to solve more complex problems.
+=======
+- What knowledge did you embed in the support agent's instruction?
+- How does it handle queries without external tools?
+
+### Host Agent Orchestration
+- How does the SequentialAgent coordinate between sub-agents?
+- What happens when the Customer Data Agent returns data to the Support Agent?
+
+### A2A Protocol Insights
+- How does agent discovery work via AgentCards?
+- What role does the `.well-known/agent-card.json` endpoint play?
+- How does RemoteA2aAgent differ from direct function calls?
+
+---
+>>>>>>> upstream/main
 
 ## Part 3: Challenges and Solutions
 
 ### Technical Challenges
+<<<<<<< HEAD
 
 The most difficult part of the implementation was not writing the individual agents, but making sure all of the pieces worked together correctly across MCP, ADK, and A2A. Since this assignment involved multiple layers of communication, a small configuration issue in one area could affect the entire system.
 
@@ -210,6 +240,14 @@ However, direct calls create tighter coupling because the Host Agent would need 
 The A2A approach adds overhead through separate services, network communication, and agent discovery, but it provides important benefits. Each agent can run independently, advertise its capabilities through AgentCards, and be replaced or updated without changing the entire system.
 
 For this assignment, the SequentialAgent pattern was the right choice because customer support has a natural workflow order. The data retrieval step improves the quality of the support response, while A2A provides a foundation for building more scalable multi-agent systems.
+=======
+- What was the most difficult part of the implementation?
+- How did you debug agent communication issues?
+
+### Architecture Decisions
+- Why is the SequentialAgent pattern appropriate for this use case?
+- What are the trade-offs vs. direct agent calls?
+>>>>>>> upstream/main
 
 ---
 
@@ -217,6 +255,7 @@ For this assignment, the SequentialAgent pattern was the right choice because cu
 
 ### Advanced Router
 - How does the dynamic routing decide which agents to call?
+<<<<<<< HEAD
 
 The Advanced Router was designed to make the system more efficient by deciding whether a user request actually requires the Customer Data Agent, the Support Agent, or both.
 
@@ -316,3 +355,29 @@ The parallel router could also be improved by adding structured output schemas i
 A future enhancement would be adding monitoring and observability across the agents. Tracking agent decisions, tool usage, response time, and failures would make it easier to manage a production multi-agent system.
 
 Overall, this assignment helped me see that the future of AI applications will likely involve multiple specialized agents working together rather than one general-purpose agent handling every responsibility. The next step would be building more production-ready systems with better routing, monitoring, and structured communication between agents.        
+=======
+- What callback patterns did you use?
+
+### Parallel Router
+- How does parallel execution improve latency?
+- What synthesis strategy did you use to combine results?
+
+### Mode Comparison
+
+| Mode | Agents Called | Latency | Context Passing |
+|------|-------------|---------|-----------------|
+| Basic (Sequential) | | | |
+| Advanced (Dynamic) | | | |
+| Parallel | | | |
+
+---
+
+## Key Learnings
+1.
+2.
+3.
+
+## Ideas for Improvement
+-
+-
+>>>>>>> upstream/main

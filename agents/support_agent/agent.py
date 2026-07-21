@@ -42,6 +42,10 @@ from google.adk.agents import Agent
 from shared.agents_config import GEMINI_MODEL
 from shared.mcp_toolset import create_support_toolset
 
+<<<<<<< HEAD
+=======
+# Configure logging for this agent
+>>>>>>> upstream/main
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] [SUPPORT_AGENT] %(levelname)s - %(message)s',
@@ -49,6 +53,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 SUPPORT_INSTRUCTION = """
 You are the Support Agent — an empathetic, customer-facing troubleshooting expert for
 the customer support platform. You help customers resolve issues with warmth, clarity,
@@ -163,4 +168,46 @@ def create_agent() -> Agent:
         name='support_agent',
         instruction=SUPPORT_INSTRUCTION,
         tools=[create_support_toolset()],
+=======
+
+def create_agent() -> Agent:
+    """
+    Create the Support Agent.
+
+    TODO: Create and return an Agent instance with:
+      1. model=GEMINI_MODEL
+      2. name='support_agent'
+      3. instruction=<your detailed support instruction>
+      4. tools=[create_support_toolset()]
+
+    The McpToolset automatically discovers support-safe tools from the MCP
+    server. Admin/destructive tools are excluded by the tool_filter.
+
+    Example:
+        return Agent(
+            model=GEMINI_MODEL,
+            name='support_agent',
+            instruction=\"\"\"
+            You are the Support Agent, a specialist in customer service...
+
+            Your knowledge base includes solutions for:
+            - Login issues (password resets, account lockouts)
+            - Payment issues (failed transactions, billing errors)
+            ...
+
+            When handling support queries:
+            1. Use MCP tools to retrieve customer information
+            2. Analyze the customer's issue
+            ...
+            \"\"\",
+            tools=[create_support_toolset()],
+        )
+
+    Returns:
+        Configured Agent instance
+    """
+    raise NotImplementedError(
+        "TODO: Create the Support Agent with model, name, instruction (including knowledge base), and tools. "
+        "Use tools=[create_support_toolset()] to attach the MCP toolset."
+>>>>>>> upstream/main
     )
