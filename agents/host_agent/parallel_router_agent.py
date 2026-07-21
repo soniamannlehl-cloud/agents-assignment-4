@@ -25,29 +25,17 @@ Requirements for bonus points:
 import sys
 import os
 import logging
-<<<<<<< HEAD
 from typing import Optional
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-=======
-
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# IMPORTANT: Apply A2A compatibility patch
->>>>>>> upstream/main
 from shared import a2a_compat  # noqa: F401
 
 from google.adk.agents import Agent, SequentialAgent, ParallelAgent
 from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
-<<<<<<< HEAD
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.agents.readonly_context import ReadonlyContext
 from google.genai import types
-=======
-from google.adk.agents.readonly_context import ReadonlyContext
->>>>>>> upstream/main
 from a2a.utils.constants import AGENT_CARD_WELL_KNOWN_PATH
 from shared.agents_config import (
     CUSTOMER_DATA_AGENT_URL,
@@ -55,7 +43,6 @@ from shared.agents_config import (
     GEMINI_MODEL,
 )
 
-<<<<<<< HEAD
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)s] [PARALLEL_ROUTER] %(levelname)s - %(message)s',
@@ -182,62 +169,4 @@ def create_agent() -> SequentialAgent:
     return SequentialAgent(
         name='parallel_customer_support_host',
         sub_agents=[parallel_worker_agent, summary_agent],
-=======
-logger = logging.getLogger(__name__)
-
-
-# =============================================================================
-# TODO BONUS: Summary Instruction Function
-# =============================================================================
-
-def create_summary_instruction(readonly_context: ReadonlyContext) -> str:
-    """
-    Create instruction for summary agent that combines parallel results.
-
-    TODO: Implement this function to:
-      1. Read customer_data_output from readonly_context.state
-      2. Read support_specialist_output from readonly_context.state
-      3. Return an instruction telling the LLM to synthesize both outputs
-
-    Hints:
-      - data_output = readonly_context.state.get("customer_data_output", "")
-      - support_output = readonly_context.state.get("support_specialist_output", "")
-      - Instruction should tell the LLM to combine outputs naturally
-    """
-    raise NotImplementedError("BONUS TODO: Implement create_summary_instruction")
-
-
-# =============================================================================
-# TODO BONUS: Create Parallel Agent
-# =============================================================================
-
-def create_agent():
-    """
-    Create a parallel router agent that executes agents concurrently.
-
-    TODO: Assemble the full orchestrator:
-
-      1. Create remote_customer_data (RemoteA2aAgent):
-         - output_key='customer_data_output'
-
-      2. Create remote_support (RemoteA2aAgent):
-         - output_key='support_specialist_output'
-
-      3. Create parallel_worker_agent (ParallelAgent):
-         - sub_agents=[remote_customer_data, remote_support]
-
-      4. Create summary_agent (Agent):
-         - instruction=create_summary_instruction
-         - include_contents='none'
-
-      5. Create orchestrator (SequentialAgent):
-         - sub_agents=[parallel_worker_agent, summary_agent]
-
-    Returns:
-        Configured SequentialAgent with parallel execution and synthesis
-    """
-    raise NotImplementedError(
-        "BONUS TODO: Create the parallel router agent. "
-        "See the docstring above for the architecture."
->>>>>>> upstream/main
     )

@@ -1,7 +1,6 @@
 # Assignment 4: Reflection
 
 ## Student Name: Sonia Mann
-=======
 
 ## Part 1: MCP Tools + Customer Data Agent
 
